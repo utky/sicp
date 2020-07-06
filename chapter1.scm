@@ -195,3 +195,37 @@
 ;; log の等式の計算がおかしかった
 ;; 
 ;; https://codology.net/post/sicp-solution-exercise-1-15/
+
+
+;; べき乗
+
+(define (expt b n)
+  (if (= n 0)
+      1
+      (* b (expt b (- n 1)))))
+;; 反復処理にしてTCOさせてスペースを節約した場合
+(define (expt-iter b counter product)
+  (if (= counter 0)
+      product
+      (expt-iter b
+                 (- counter 1)
+                 (* b product))))
+;; これでもステップはO(n)なので節約しようと思うとnが偶数の時に逐次平方を用いる、という手がある。
+;; nが偶数の時に成り立つ下記の等式を利用すると計算回数を減らせる
+;; b^n = (b^(n/2))^2
+;; (expt 2 (expt 2 (expt 2 ...)))
+;; 2の指数回再帰呼び出しが発生する。
+
+;; Q 1.16
+
+(define (expt-iter-sq b counter product)
+  (if (= counter 1)
+      product
+      (if (= 0 (remainder counter 2))
+        ;; ab^n  -> (ab)(b^n-1)
+        (expt-iter-sq b (/ counter 2) (* (square b) product)
+        ;; (b^n/2)
+        (expt-iter-sq b (- counter 1) (* b product)))))
+
+;; http://community.schemewiki.org/?sicp-ex-1.16
+;; なんかちょっと違った
