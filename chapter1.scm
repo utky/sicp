@@ -212,20 +212,27 @@
                  (* b product))))
 ;; これでもステップはO(n)なので節約しようと思うとnが偶数の時に逐次平方を用いる、という手がある。
 ;; nが偶数の時に成り立つ下記の等式を利用すると計算回数を減らせる
-;; b^n = (b^(n/2))^2
+;; b^n = (b^2)^n/2
 ;; (expt 2 (expt 2 (expt 2 ...)))
 ;; 2の指数回再帰呼び出しが発生する。
 
 ;; Q 1.16
 
 (define (expt-iter-sq b counter product)
-  (if (= counter 1)
+  (if (= counter 0)
       product
       (if (= 0 (remainder counter 2))
+        ;; ab^n -> a((b^2)^n/2) -> (ab^2)(b^n/2)
+        (expt-iter-sq b (- (/ counter 2) 1) (* (square b) product))
         ;; ab^n  -> (ab)(b^n-1)
-        (expt-iter-sq b (/ counter 2) (* (square b) product)
-        ;; (b^n/2)
         (expt-iter-sq b (- counter 1) (* b product)))))
+
+(define (expt-iter-sq-ans b counter product)
+  (if (= counter 0)
+      product
+      (if (= 0 (remainder counter 2))
+        (expt-iter-sq-ans (square b) (/ counter 2) (* b product))
+        (expt-iter-sq-ans b (- counter 1) (* b product)))))
 
 ;; http://community.schemewiki.org/?sicp-ex-1.16
 ;; なんかちょっと違った
