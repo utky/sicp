@@ -227,6 +227,7 @@
         ;; ab^n  -> (ab)(b^n-1)
         (expt-iter-sq b (- counter 1) (* b product)))))
 
+;; 正解は
 (define (expt-iter-sq-ans b counter product)
   (if (= counter 0)
       product
@@ -236,3 +237,43 @@
 
 ;; http://community.schemewiki.org/?sicp-ex-1.16
 ;; なんかちょっと違った
+
+;; Q 1.17
+(define (even? x) (= (remainder x 2) 0))
+(define (halve x) (/ x 2))
+(define (double x) (+ x x))
+;; n * m
+;; (+ n (+ n (+ n ...)))
+;; (+ n (* 2 (+ n (+ n ...))))
+(define (mul n m)
+  (cond ((= m 0) 0)
+        ((even? m) (double (mul n (halve m))))
+        (else (+ n (mul n (- m 1))))))
+;; Q 1.18
+;; 2m * n/2
+(define (mul-iter n m)
+  (define (go x acc counter)
+    (format #t "x ~s acc ~s counter ~s\n" x acc counter)
+    (cond ((= counter 0) acc)
+          ((even? counter) (go (double x) acc (halve counter)))
+          (else (go x (+ acc x) (- counter 1)))))
+  (go n 0 m))
+;; これは解けた
+
+;; (WIP) Q 1.19 
+(define (fib n)
+  (fib-iter 1 0 0 1 n))
+
+(define (fib-iter a b p q count)
+  (cond ((= count 0) b)
+        ((even? count)
+         (fib-iter a
+                   b
+                   ???
+                   ???
+                   (/ count 2)))
+        (else (fib-iter (+ (* b q) (*a q) (* a p))
+                        (+ (* b p) (* a q)
+                        p
+                        q
+                        (- count 1))))))
