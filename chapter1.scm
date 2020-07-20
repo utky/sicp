@@ -261,6 +261,27 @@
 ;; これは解けた
 
 ;; (WIP) Q 1.19 
+;; T_pq
+;; a <- bq + aq + ap
+;; b <- bp + aq
+;;
+;; こういう形にしておく
+;; a <- bq + a(q + p)
+;; 
+;; a_2 <- (bp + aq)q + (bq + aq + ap)q + (bq + aq + ap)p
+;;     = bpq + aq^2 + bq^2 + aq^2 + apq + bpq + apq + ap^2
+;;     = ap^2 + 2bpq + 2apq + 2aq^2 + bq^2
+;;     = (2bpq + bq^2) + (ap^2 + 2apq + 2aq^2)
+;;     = b(2pq + q^2) + a(p^2 + 2pq + 2q^2)
+;; 
+;; q' = (2pq + q^2)
+;; q' + p' = (p^2 + 2pq + 2q^2)
+;; p' = (p^2 + 2pq + 2q^2) - (2pq + q^2)
+;; p' = p^2 + q^2
+
+;; b_2 <- (bp + aq) + (bq + aq + ap)q
+;; 
+
 (define (fib n)
   (fib-iter 1 0 0 1 n))
 
@@ -269,11 +290,11 @@
         ((even? count)
          (fib-iter a
                    b
-                   ???
-                   ???
+                   (+ (square p) (square q))
+                   (+ (* 2 p q) (square q))
                    (/ count 2)))
-        (else (fib-iter (+ (* b q) (*a q) (* a p))
-                        (+ (* b p) (* a q)
+        (else (fib-iter (+ (* b q) (* a q) (* a p))
+                        (+ (* b p) (* a q))
                         p
                         q
-                        (- count 1))))))
+                        (- count 1)))))
