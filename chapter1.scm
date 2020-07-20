@@ -298,3 +298,39 @@
                         p
                         q
                         (- count 1)))))
+
+;; Q 1.20
+;; 最大公約数を求めるユークリッドのアルゴリズム
+;; このアルゴリズムは下記の性質を利用している。
+;;
+;; a % b = r
+;; GCD(a, b) = GCD(b, r)
+;;
+;; これなんでなんだろう。
+(define (gcd a b)
+  (if (= b 0)
+    a
+    (gcd b (remainder a b))))
+
+;; 世紀順序評価
+(gcd 206 40)
+(gcd 40 (remainder 206 40))
+(gcd (remainder 206 40) (remainder 40 (remainder 206 40)))
+(gcd (remainder 40 (remainder 206 40)) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))
+(gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder 40 (remainder 206 40)) (remainder (remainder 206 40) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))
+;; あれ、これ引数を先に評価しないと無限に展開されないかな？
+;;
+;; いや間違ってた再帰的にgcd簡約する前にifを評価する。
+;; https://codology.net/post/sicp-solution-exercise-1-20/
+;; ifの部分でもremainderの計算が走るので↓は間違い
+;; 5 回の簡約で b が 0 になるようだ
+;; 5:12
+;; 4:6 
+;; 3:3
+;; 2:1
+;; 1:0
+;; reminder演算数は3(k-2)で増える
+;;
+;;（こっちのはあっていそう）
+;; 作用的順序だとk回のremainderで済む。
+;; この場合は4回
