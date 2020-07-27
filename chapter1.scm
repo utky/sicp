@@ -312,12 +312,12 @@
     a
     (gcd b (remainder a b))))
 
-;; 世紀順序評価
-(gcd 206 40)
-(gcd 40 (remainder 206 40))
-(gcd (remainder 206 40) (remainder 40 (remainder 206 40)))
-(gcd (remainder 40 (remainder 206 40)) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))
-(gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder 40 (remainder 206 40)) (remainder (remainder 206 40) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))
+;; 正規順序評価
+;; (gcd 206 40)
+;; (gcd 40 (remainder 206 40))
+;; (gcd (remainder 206 40) (remainder 40 (remainder 206 40)))
+;; (gcd (remainder 40 (remainder 206 40)) (remainder (remainder 206 40) (remainder 40 (remainder 206 40))))
+;; (gcd (remainder (remainder 206 40) (remainder 40 (remainder 206 40))) (remainder (remainder 40 (remainder 206 40)) (remainder (remainder 206 40) (remainder (remainder 206 40) (remainder 40 (remainder 206 40)))))
 ;; あれ、これ引数を先に評価しないと無限に展開されないかな？
 ;;
 ;; いや間違ってた再帰的にgcd簡約する前にifを評価する。
@@ -334,3 +334,58 @@
 ;;（こっちのはあっていそう）
 ;; 作用的順序だとk回のremainderで済む。
 ;; この場合は4回
+
+
+(define (smallest-divisor n)
+  (find-divisor n 2))
+
+(define (find-divisor n test-divisor)
+  (cond ((> (square test-divisor) n) n)
+        ((divides? test-divisor n)   test-divisor)
+        (else (find-divisor n (+ test-divisor 1)))))
+
+(define (divides? a b)
+  (= (remainder b a) 0))
+
+(define (prime? n)
+  (= n (smallest-divisor n)))
+
+;; Q 1.21
+;; gosh> (smallest-divisor 199)
+;; 199
+;; gosh> (smallest-divisor 1999)
+;; 1999
+;; gosh> (smallest-divisor 19999)
+;; 7
+
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder (square (expmod base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base (expmod base (- exp 1) m))
+                    m))))
+
+;; 自然に考えるとうこう、なのだがなぜ↑の式でもOKなのか調べたい
+;; footnote 46 を見るとそのヒントが書いてあるようだ
+;; 剰余算の分配測を活用していると言えるようだ
+;;; https://ja.wikipedia.org/wiki/%E5%89%B0%E4%BD%99%E6%BC%94%E7%AE%97
+(define (expmod-simple base exp m)
+  (remainder (expt base exp) m))
+
+;; 3 3 2
+;; 3^3 = 27
+;; 27 mod 2 = 1
+;; 検算
+;; (expmod 3 3 2)
+;; (remainder (* 3 (expmod 3 2 2)) 2)
+;; (remainder (* 3 (remainder (square (expmod 3 1 2)) 2)) 2)
+;; (remainder (* 3 (remainder (square (remainder (* 3 (expmod 3 0 2)) 2)) 2)) 2)
+;; (remainder (* 3 (remainder (square (remainder (* 3 1) 2)) 2)) 2)
+;; (remainder (* 3 (remainder (square (remainder 3 2)) 2)) 2)
+;; (remainder (* 3 (remainder (square 1) 2)) 2)
+;; (remainder (* 3 (remainder 1 2)) 2)
+;; (remainder (* 3 1) 2)
+;; (remainder 3 2)
+;; 1
