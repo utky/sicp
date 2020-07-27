@@ -389,3 +389,27 @@
 ;; (remainder (* 3 1) 2)
 ;; (remainder 3 2)
 ;; 1
+
+;; 3^3 mod 2
+;; 3x3x3 mod 2
+;; ((3 mod 2) (3 mod 2) (3 mod 2)) mod 2
+;; 下記に変換できそうだが一般化できるかわからない
+;; (((3 mod 2) * 3 mod 2) * 3 mod 2)
+;;
+;; 5 * 4 mod 3 = 2
+;; ((5 mod 3) * 4 mod 3)
+;; (2 * 4 mod 3) = 2
+
+;; (a * b mod n)
+;; =
+;; ((a mod n) * b) mod n
+;; を証明せよ
+
+;; ((a mod n) * b) mod n
+;; 分配測から
+;; (((a mod n) mod n) * (b mod n)) mod n
+;; mod の冪等性から左辺は1回簡約できる
+;; ((a mod n) * (b mod n)) mod n
+;; 分配測を逆に適用して
+;; (a * b mod n)
+;; 証明終わり
