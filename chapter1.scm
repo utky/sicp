@@ -11,7 +11,7 @@
   (* x x))
 
 (define (average x y)
-  (/ (x + y) 2))
+  (/ (+ x y) 2))
 
 (define (sqrt x)
   (define (good-enough? guess)
@@ -413,3 +413,44 @@
 ;; 分配測を逆に適用して
 ;; (a * b mod n)
 ;; 証明終わり
+
+;; Q 1.22
+
+(define (runtime)
+  (current-time))
+
+(define (timed-prime-test n)
+  (newline)
+  (display n)
+  (start-prime-test n (runtime)))
+
+(define (time-difference time0 time1)
+  (- (time->seconds time0) (time->seconds time1)))
+
+(define (start-prime-test n start-time)
+  ;; 上位で prime? の回答を使いたいので束縛しておく
+  (let ((is-prime (prime? n)))
+    (if is-prime
+        (report-prime (time-difference (runtime) start-time)))
+    is-prime))
+
+(define (report-prime elapsed-time)
+  (display " *** ")
+  (display elapsed-time))
+
+(define (search-for-primes n end found count)
+  (if (or (= n end) (= found count))
+    #t
+    (if (not (= 0 (remainder n 2)))
+      (if (timed-prime-test n)
+        (search-for-primes (+ n 1) end (+ found 1) count)
+        (search-for-primes (+ n 1) end found count))
+      (search-for-primes (+ n 1) end found count))))
+
+;; 1009 *** 1.0013580322265625e-5
+;; 10007 *** 3.0994415283203125e
+;; 100003 *** 9.584426879882812e-5
+;; Θ(√n) なので n が 10 倍なら
+;; gosh> (sqrt 10)
+;; 3.162277665175675
+;; かかる。したがって約 3 倍ずつ増加していることが確かに伺える。
