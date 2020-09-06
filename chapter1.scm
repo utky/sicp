@@ -569,7 +569,7 @@
 ;; 1000003 *** 6.508827209472656e-5
 ;; ということで予想通り。
 
-;; Q 1.15
+;; Q 1.25
 
 (define (proc-time-elapsed f args)
   (let ((start (runtime))
@@ -614,11 +614,12 @@
 (define (miller-rabin-expmod base exp m)
   (cond ((= exp 0) 1)
         ((even? exp)
-          (let ((sq-rem (remainder (square (expmod base (/ exp 2) m)) m)))
-            (cond ((= sq-rem 1) 0)
+          (let* ((n (miller-rabin-expmod base (/ exp 2) m))
+                (sq-rem (remainder (square n) m)))
+            (cond ((and (not (or (= n 1) (= n (- m 1)))) (= sq-rem 1)) 0)
                   (else sq-rem))))
         (else
-         (remainder (* base (expmod base (- exp 1) m))
+         (remainder (* base (miller-rabin-expmod base (- exp 1) m))
                     m))))
 
 (define (miller-rabin-test n)
