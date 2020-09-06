@@ -2,6 +2,8 @@
   (export-all))
 (select-module chapter1)
 
+(use srfi-27)
+
 (define (abs x)
   (if (< x 0)
     (- x)
@@ -367,6 +369,16 @@
          (remainder (* base (expmod base (- exp 1) m))
                     m))))
 
+(define (fermat-test n)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random-integer (- n 1)))))
+
+(define (fast-prime? n times)
+  (cond ((= times 0) #t)
+        ((fermat-test n) (fast-prime? n (- times 1)))
+        (else #f)))
+
 ;; 自然に考えるとうこう、なのだがなぜ↑の式でもOKなのか調べたい
 ;; footnote 46 を見るとそのヒントが書いてあるようだ
 ;; 剰余算の分配測を活用していると言えるようだ
@@ -454,3 +466,176 @@
 ;; gosh> (sqrt 10)
 ;; 3.162277665175675
 ;; かかる。したがって約 3 倍ずつ増加していることが確かに伺える。
+
+(define (smallest-divisor-2 n)
+  (find-divisor-2 n 2))
+
+(define (find-divisor-2 n test-divisor)
+  (define (next n)
+    (cond ((= 2 n) 3)
+          (else (+ n 2))))
+  (cond ((> (square test-divisor) n) n)
+        ((divides? test-divisor n)   test-divisor)
+        (else (find-divisor-2 n (next test-divisor)))))
+
+(define (prime?-2 n)
+  (= n (smallest-divisor-2 n)))
+
+(define (timed-prime-test-2 n)
+  (newline)
+  (display n)
+  (start-prime-test-2 n (runtime)))
+
+(define (start-prime-test-2 n start-time)
+  ;; 上位で prime? の回答を使いたいので束縛しておく
+  (let ((is-prime (prime?-2 n)))
+    (if is-prime
+        (report-prime (time-difference (runtime) start-time)))
+    is-prime))
+
+(define (search-for-primes-2 n end found count)
+  (if (or (= n end) (= found count))
+    #t
+    (if (not (= 0 (remainder n 2)))
+      (if (timed-prime-test-2 n)
+        (search-for-primes-2 (+ n 1) end (+ found 1) count)
+        (search-for-primes-2 (+ n 1) end found count))
+      (search-for-primes-2 (+ n 1) end found count))))
+
+;; Q 1.23
+;; gosh> (search-for-primes-2 1000 10000 0 3)
+;; 
+;; 1009 *** 8.106231689453125e-6
+;; 1013 *** 5.0067901611328125e-6
+;; 1019 *** 5.0067901611328125e-6#t
+;; gosh> (search-for-primes-2 10000 100000 0 3)
+;; 
+;; 10007 *** 1.71661376953125e-5
+;; 10009 *** 1.6927719116210937e-5
+;; 10037 *** 1.6927719116210937e-5#t
+;; gosh> (search-for-primes-2 100000 1000000 0 3)
+;; 
+;; 100003 *** 5.698204040527344e-5
+;; 100019 *** 5.1021575927734375e-5
+;; 100043 *** 5.1975250244140625e-5#t
+
+;; ああ、大体半分かな
+
+(define (timed-prime-test-3 n)
+  (newline)
+  (display n)
+  (start-prime-test-3 n (runtime)))
+
+(define (start-prime-test-3 n start-time)
+  ;; 上位で prime? の回答を使いたいので束縛しておく
+  (let ((is-prime (fast-prime? n 5)))
+    (if is-prime
+        (report-prime (time-difference (runtime) start-time)))
+    is-prime))
+
+(define (search-for-primes-3 n end found count)
+  (if (or (= n end) (= found count))
+    #t
+    (if (not (= 0 (remainder n 2)))
+      (if (timed-prime-test-3 n)
+        (search-for-primes-3 (+ n 1) end (+ found 1) count)
+        (search-for-primes-3 (+ n 1) end found count))
+      (search-for-primes-3 (+ n 1) end found count))))
+
+;; Q 1.24
+;; gosh> (search-for-primes-3 1000 10000 0 3)
+;; 
+;; 1009 *** 3.600120544433594e-5
+;; 1013 *** 3.695487976074219e-5
+;; 1019 *** 3.910064697265625e-5#t
+;; gosh> (search-for-primes-3 10000 100000 0 3)
+;; 
+;; 10007 *** 4.696846008300781e-5
+;; 10009 *** 4.9114227294921875e-5
+;; 10037 *** 4.696846008300781e-5#t
+;; gosh> (search-for-primes-3 100000 1000000 0 3)
+;; 
+;; 100003 *** 5.4836273193359375e-5
+;; 100019 *** 5.888938903808594e-5
+;; 100043 *** 5.602836608886719e-5#t
+;; gosh> 
+
+;; 1000 の入力は
+;; 1009 *** 3.600120544433594e-5
+;; (log 1000) = 3
+;; 1000000
+;; (log 1000000) = 6
+;; なので2倍になっているはず
+;; 1000003 *** 6.508827209472656e-5
+;; ということで予想通り。
+
+;; Q 1.15
+
+(define (proc-time-elapsed f args)
+  (let ((start (runtime))
+        (result (apply f args)))
+    (display " *** ")
+    (display (- (time->seconds (runtime)) (time->seconds start)))
+    (newline)
+    result))
+
+(define (fast-expt b n)
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-expt b (/ n 2))))
+        (else (* b (fast-expt b (- n 1))))))
+
+(define (expmod-one-remainder base exp m)
+  (remainder (fast-expt base exp) m))
+
+;; gosh> (proc-time-elapsed expmod-one-remainder '(2 10000000 2))
+;;  *** 18.769355058670044
+;; 0
+;; gosh> (proc-time-elapsed expmod '(2 10000000 2))
+;;  *** 2.7894973754882812e-5
+;; 0
+
+;; 圧倒的に違う fast-expt が遅い
+;; expmod はスタック積むたびにremainderを取ることでnを小さく保っているのに対して
+;; fast-expt は言ったん巨大な数を計算しきってからremainderを呼んでおり、使うメモリのサイズが段違い
+;; もしプリミティブ型がコピーだとしたらスタックには巨大数があふれることになる
+
+;; Q 1.26
+;; expmod を二回呼び出しているため
+;; nが2倍になると
+;; n+1で済んでいたのが2(n+1)となってステップ数がΘ(n)になる
+
+;; Q 1.27
+;; gosh> (fast-prime? 1105 10)
+;; #t
+;; gosh> (/ 1105 5)
+;; 221
+
+;; Q 1.28
+(define (miller-rabin-expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+          (let ((sq-rem (remainder (square (expmod base (/ exp 2) m)) m)))
+            (cond ((= sq-rem 1) 0)
+                  (else sq-rem))))
+        (else
+         (remainder (* base (expmod base (- exp 1) m))
+                    m))))
+
+(define (miller-rabin-test n)
+  (define (try-it a)
+    (= (miller-rabin-expmod a (- n 1) n) 1))
+  (try-it (+ 1 (random-integer (- n 1)))))
+
+(define (miller-rabin-prime? n times)
+  (cond ((= times 0) #t)
+        ((miller-rabin-test n) (miller-rabin-prime? n (- times 1)))
+        (else #f)))
+
+;; gosh> (fast-prime? 561 5)
+;; #t
+;; gosh> (miller-rabin-prime? 561 5)
+;; #f
+;; gosh> (fast-prime? 1729 5)
+;; #t
+;; gosh> (miller-rabin-prime? 1729 5)
+;; #f
