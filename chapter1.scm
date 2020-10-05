@@ -667,3 +667,43 @@
           (else                  (* 4 (yk k)))))
   (* (/ h 3)
      (sum term 0 inc n)))
+
+;; Q 1.30
+(define (sum-iter term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (iter (next a) (+ (term a) result))))
+  (iter a 0))
+
+;; Q 1.31
+;; a
+(define (product term a next b)
+  (if (> a b)
+    1
+    (* (term a)
+       (product term (next a) next b))))
+
+(define (q-1-31-pi n)
+  (define (term a)
+    (let* ((deno (inc (* 2 (inc (quotient a 2)))))
+           (nume (let ((x (+ a 2)))
+                   (if (odd? x) (inc x) x))))
+      (/ nume deno)))
+  (inexact (* (product term 0 inc n) 4)))
+
+;; b
+(define (product-iter term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (iter (next a) (* (term a) result))))
+  (iter a 1))
+
+(define (q-1-31-pi-iter n)
+  (define (term a)
+    (let* ((deno (inc (* 2 (inc (quotient a 2)))))
+           (nume (let ((x (+ a 2)))
+                   (if (odd? x) (inc x) x))))
+      (/ nume deno)))
+  (inexact (* (product-iter term 0 inc n) 4)))
