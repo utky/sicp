@@ -741,3 +741,13 @@
 ;; b
 (define (q-1-33-b n)
   (filtered-accumulate-iter (lambda (x) (= (gcd x n) 1)) * 1 identity 0 inc (- n 1)))
+
+;; Q 1.34
+;; (define (f g) (g 2))
+;; (f f)
+;; (f 2)
+;; (2 2)
+;; error
+;; actually *** ERROR: invalid application: (2 2)
+
+;; 1.3.3 からは関数の零点と不動点を探す
