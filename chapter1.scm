@@ -707,3 +707,37 @@
                    (if (odd? x) (inc x) x))))
       (/ nume deno)))
   (inexact (* (product-iter term 0 inc n) 4)))
+
+;; Q 1.32
+;; (accumulate combiner null-value term a next b)
+
+;; a
+(define (accumulate combiner null-value term a next b)
+  (if (> a b)
+    null-value
+    (combiner (term a)
+       (accumulate combiner null-value term (next a) next b))))
+
+;; b
+(define (accumulate-iter combiner null-value term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (iter (next a) (combiner (term a) result))))
+  (iter a null-value))
+
+;; Q 1.33
+(define (filtered-accumulate-iter predicate combiner null-value term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (if (predicate a)
+          (iter (next a) (combiner (term a) result))
+          (iter (next a) result))))
+  (iter a null-value))
+;; a
+(define (q-1-33-a a b)
+  (filtered-accumulate-iter prime? + 0 square a inc b))
+;; b
+(define (q-1-33-b n)
+  (filtered-accumulate-iter (lambda (x) (= (gcd x n) 1)) * 1 identity 0 inc (- n 1)))
